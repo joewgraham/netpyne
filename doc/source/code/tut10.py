@@ -178,13 +178,15 @@ class MSN:
 
         ## Cell types
 
-        # MSNcell['secs']['soma']['mechs']['hh'] = {'gnabar': 0.12, 'gkbar': 0.036, 'gl': 0.003, 'el': -70}
+        MSNcell['secs']['soma']['mechs']['hh'] = {'gnabar': 0.12, 'gkbar': 0.036, 'gl': 0.003, 'el': -70}
 
-        # val3 = _mechStrToFunc(sec, self.soma, as2[as2.index("_")+1:], sec.nseg, [a4,a5,dist,a6,a7, g8], ['a4','a5','dist', 'a6', 'a7', 'g8'], '(a4 + a5*exp((dist-a6)/a7)) * g8')
-        #
-        # __mechStrToFunc(sec, self.soma, mechName, mechParams["values"], mechParams["strVars"], mechParams["strFunc"], nseg = sec.nseg)
-        #
-        # PYRcell['secs']['dend']['mechs']['hh'] = {'gnabar': 0.12,'gkbar': 0.036, 'gl': 0.003, 'el': -70}      # soma hh mechanisms
+        MSNcell['secs']['soma']['mechs']['hh']['gbar_naf'] = {'values': [0.12,1,0.5], 'strVars': ['a','b','c'], 'strFunc': 'a+b*np.exp(c)'}
+
+        val3 = _mechStrToFunc(sec, self.soma, as2[as2.index("_")+1:], sec.nseg, [a4,a5,dist,a6,a7, g8], ['a4','a5','dist', 'a6', 'a7', 'g8'], '(a4 + a5*exp((dist-a6)/a7)) * g8')
+
+        __mechStrToFunc(sec, self.soma, mechName, mechParams["values"], mechParams["strVars"], mechParams["strFunc"], nseg = sec.nseg)
+
+        PYRcell['secs']['dend']['mechs']['hh'] = {'gnabar': 0.12,'gkbar': 0.036, 'gl': 0.003, 'el': -70}      # soma hh mechanisms
 
         for sec in self.somalist:
             for mech in [
