@@ -16,29 +16,14 @@ from netpyne import specs, sim
 netParams = specs.NetParams()  # object of class NetParams to store the network parameters
 
 ## Cell types
-MSNcell = {'secs': {}}
 
-# PYRcell['secs']['soma'] = {'geom': {}, 'mechs': {}}
-# PYRcell['secs']['soma']['geom'] = {'diam': 18.8, 'L': 18.8, 'Ra': 123.0}
-# PYRcell['secs']['soma']['mechs']['hh'] = {'gnabar': 0.12, 'gkbar': 0.036, 'gl': 0.003, 'el': -70}
-#
-# PYRcell['secs']['dend'] = {'geom': {}, 'topol': {}, 'mechs': {}}
-# PYRcell['secs']['dend']['geom'] = {'diam': 5.0, 'L': 150.0, 'Ra': 150.0, 'cm': 1}
-# PYRcell['secs']['dend']['topol'] = {'parentSec': 'soma', 'parentX': 1.0, 'childX': 0}
-# PYRcell['secs']['dend']['mechs']['pas'] = {'g': 0.0000357, 'e': -70}
-# PYRcell['secs']['dend']['mechs']['hh'] = {'gnabar': 0.12,'gkbar': 0.036, 'gl': 0.003, 'el': -70}      # soma hh mechanisms
+morphology='latest_WT-P270-20-14ak.swc'
+# Import = h.Import3d_SWC_read()
+# Import.input(morphology)
+# imprt = h.Import3d_GUI(Import, 0)
+# imprt.instantiate(None)
 
-netParams.cellParams['MSN'] = MSNcell
-
-## Population parameters
-netParams.popParams['M'] = {'cellType': 'MSN', 'numCells': 1}
-
-## Synaptic mechanism parameters
-# netParams.synMechParams['exc'] = {'mod': 'Exp2Syn', 'tau1': 1.0, 'tau2': 5.0, 'e': 0}  # excitatory synaptic mechanism
-#
-# Stimulation parameters
-netParams.stimSourceParams['bkg'] = {'type': 'NetStim', 'rate': 10, 'noise': 0.5}
-netParams.stimTargetParams['bkg->MSN'] = {'source': 'bkg', 'conds': {'cellType': 'MSN'}, 'weight': 0.01, 'delay': 5, 'synMech': 'exc'}
+netParams = specs.NetParams()  # object of class NetParams to store the network parameters
 
 # Simulation options
 simConfig = specs.SimConfig()       # object of class SimConfig to store simulation configuration
@@ -87,22 +72,7 @@ netParams.stimTargetParams['bkg->PYR'] = {'source': 'bkg', 'conds': {'cellType':
 
 # Simulation options
 simConfig = specs.SimConfig()       # object of class SimConfig to store simulation configuration
-    _mechStrToFunc(sec, self.soma, as2[as2.index("_")+1:], sec.nseg, [a4,a5,'pathdistfromsoma',a6,a7, g8], ['a4','a5','dist', 'a6', 'a7', 'g8'], '(a4 + a5*exp((dist-a6)/a7)) * g8')
-
-    [a4,a5,'pathdistfromsoma',a6,a7, g8]
-y = ['a4','a5','pathDistFromSoma', 'a6', 'a7', 'g8']
-vals = []
-for value in y:
-    if value == 'pathDistFromSoma':
-        x = h.distance(1, sec=soma)
-    elif value == 'pathDistFromParentSec':
-        x = h.distance(1, sec=parentSec)
-    else:
-        x = eval(y)
-    vals.append(x)
-
-[eval(x) for x in y]
-[a4,a5,dist,a6,a7, g8]
+_mechStrToFunc(sec, self.soma, as2[as2.index("_")+1:], sec.nseg, [a4,a5,'pathdistfromsoma',a6,a7, g8], ['a4','a5','dist', 'a6', 'a7', 'g8'], '(a4 + a5*exp((dist-a6)/a7)) * g8')
 
 def _mechStrToFunc(sec, soma, mech, nseg = False,  strVars = vars, strFunc = strFunc):
     '''
@@ -129,7 +99,6 @@ def _mechStrToFunc(sec, soma, mech, nseg = False,  strVars = vars, strFunc = str
     if nseg:
         sec.nseg = nseg
 
-    # soma = sim.net.cells[0].secs['soma']['hObj']
     parentSec = h.SectionRef(sec=sec).parent
 
     for index, value in enumerate(values):
@@ -138,18 +107,10 @@ def _mechStrToFunc(sec, soma, mech, nseg = False,  strVars = vars, strFunc = str
         elif value == 'pathDistFromParentSec':
             values[index] = h.distance(1, sec=parentSec)
 
-    # distFromSoma = h.distance(1, sec=self.soma)
-    # if values[2] == 'pathDistFromSoma':
-    #     values[2] = h.distance(1, sec=soma)
-    # elif values[2] == 'pathDistFromParentSec':
-    #     values[2] = h.distance(1, sec=parentSec)
-
     print(sec.psection()['density_mechs'].keys())
     print(mech)
 
-    # mechDistribution = sec.psection()['density_mechs']['hh'][mech]
     mechDistribution = sec.psection()['density_mechs'][mech]
-    # segDistances = [ h.distance(seg) for seg in dend]
 
     lambdaStr = 'lambda ' + ','.join(strVars) +': ' + strFunc
     lambdaFunc = eval(lambdaStr)
@@ -157,6 +118,7 @@ def _mechStrToFunc(sec, soma, mech, nseg = False,  strVars = vars, strFunc = str
     mechDistribution = [lambdaFunc(*values) for seg in sec]
     print (mechDistribution)
     return mechDistribution
+
 def calculate_distribution(d3, dist, a4, a5,  a6,  a7, g8):
     '''
     Used for setting the maximal conductance of a segment.
@@ -198,16 +160,31 @@ def calculate_distribution(d3, dist, a4, a5,  a6,  a7, g8):
 class MSN:
     def __init__(self,  params=None,                                \
                         morphology='latest_WT-P270-20-14ak.swc'     ):
-        Import = h.Import3d_SWC_read()
-        Import.input(morphology)
-        imprt = h.Import3d_GUI(Import, 0)
-        imprt.instantiate(None)
-        h.define_shape()
+
+        netParams = specs.NetParams()  # object of class NetParams to store the network parameters
+        MSNcell = netParams.importCellParams(label='MSN_HH_rule', conds={'cellType': 'MSN', 'cellModel': 'HH'},
+        fileName='latest_WT-P270-20-14ak.swc', cellName='MSNCellClass', importSynMechs=True)
+
+        # Import = h.Import3d_SWC_read()
+        # Import.input(morphology)
+        # imprt = h.Import3d_GUI(Import, 0)
+        # imprt.instantiate(None)
+        # h.define_shape()
         # h.cao0_ca_ion = 2  # default in nrn
         h.celsius = 35
-        self._create_sectionlists()
-        self._set_nsegs()
+        # self._create_sectionlists()
+        # self._set_nsegs()
         self.v_init = -85
+
+        ## Cell types
+
+        # MSNcell['secs']['soma']['mechs']['hh'] = {'gnabar': 0.12, 'gkbar': 0.036, 'gl': 0.003, 'el': -70}
+
+        # val3 = _mechStrToFunc(sec, self.soma, as2[as2.index("_")+1:], sec.nseg, [a4,a5,dist,a6,a7, g8], ['a4','a5','dist', 'a6', 'a7', 'g8'], '(a4 + a5*exp((dist-a6)/a7)) * g8')
+        #
+        # __mechStrToFunc(sec, self.soma, mechName, mechParams["values"], mechParams["strVars"], mechParams["strFunc"], nseg = sec.nseg)
+        #
+        # PYRcell['secs']['dend']['mechs']['hh'] = {'gnabar': 0.12,'gkbar': 0.036, 'gl': 0.003, 'el': -70}      # soma hh mechanisms
 
         for sec in self.somalist:
             for mech in [
